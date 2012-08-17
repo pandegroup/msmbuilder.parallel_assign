@@ -28,6 +28,31 @@ we gave it n=1). The engines' job is to actually do our work. The controller is
 not as interested. Its job is to coordinate with the engines and handle things
 like task scheduling.
 
-
 Once the controller/engines are up and running, we can run `AssignIPP.py`.
+One of the first things the script will try to do is connect to the controller.
+Then it will prepare the jobs, submit then, and save the results as they return.
+
+PBS Workers
+-----------
+
+Simply starting a single engine on your local node is pretty boring. Instead, you
+probably want your engine to be on other nodes.
+
+On Stanford's certainty cluster, I can do the following from two DIFFERENT nodes
+    
+    rmcgibbo@certainty-a:
+    $ ipcontroller --ip '*'
+    
+    rmcgibbo@certainty-b:
+    $ ipengine
+    
+On certainty-a, I see
+
+    2012-08-17 00:14:07.051 [IPControllerApp] registration::finished registering engine 0:'661ecce8-8d2e-41d2-97f4-6715fe4a8692'
+    2012-08-17 00:14:07.052 [IPControllerApp] engine::Engine Connected: 0
+    
+
+
+
+
 
