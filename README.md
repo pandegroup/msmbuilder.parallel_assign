@@ -9,8 +9,9 @@ powerful, flexible, parallel solution to assigning big datasets.
 
 Because it uses `IPython.parallel` as opposed to my own homegrown mpi4py
 code, this code is a lot more flexible. It also should be a lot more stable/bug
-free. It also checkpoints much faster by only writing the necessary incremental
+free. It checkpoints much faster by only writing the necessary incremental
 updates to the files on disk as opposed to completely rewriting them each time.
+
 
 Workflow
 --------
@@ -32,6 +33,35 @@ Once the controller/engines are up and running, we can run `AssignIPP.py`.
 One of the first things the script will try to do is connect to the controller.
 Then it will prepare the jobs, submit then, and save the results as they return.
 
+The Script
+----------
+
+`AssignIPP.py` options, that you can see with `AssignIPP.py -h`. A new option
+which deserves some explanation is the chunk_size option.
+
+Previous assignment codes that I wrote processed each trajectory individually.
+This is not necessarily the best choice. If you have a lot of short trajectories,
+processing each trajectory individually leads to a lot of overhead that you
+don't need. On the other hand, if you only have a single long trajectory,
+you have no way to do the computation in parallel over multiple nodes unless you
+split it up.
+
+`AssignIPP.py` partitions the frames in your trajectory into a bunch of chunks.
+Each chunk may incorporate frames from a single trajectory or multiple trajectories.
+These chunks are then the unit of the parallelism between nodes. When the assignment
+is completed for each chunk, those results are immediately written to disk.
+
+The size of the chunks is set from the command line with chunk_size. Using large
+chunks will reduce the communication overhead, but if you have fewer chunks
+than you do engines, not all the engines will actually be able to do anything.
+Using small chunks will also lead to more frequent checkpointing.
+
+
+If you start up `AssignIPP.py` pointing to an output directory that already
+contains results (i.e. an Assignments.h5 and Assignments.h5.distances), it will
+pick up where it left off. The only caveat is that you need to supply an identical
+chunk_size as you did previously.
+
 PBS Workers
 -----------
 
@@ -51,8 +81,44 @@ On certainty-a, I see
     2012-08-17 00:14:07.051 [IPControllerApp] registration::finished registering engine 0:'661ecce8-8d2e-41d2-97f4-6715fe4a8692'
     2012-08-17 00:14:07.052 [IPControllerApp] engine::Engine Connected: 0
     
+which indicates that the engine on one node has successfully connected to
+the controller on a different node.
 
+The flag `--ip='*` indicates that we're allowing engines to connect from any ip
+address, which is necessary.
 
+The `ipcluster` command, which calls both `ipcontroller` and `ipengine`, has a
+very convenient feature -- profiles, which helps to automate all of this setup.
+I've put a few profiles online at https://github.com/rmcgibbo/ipython_parallel_profiles
+
+If you download and install that package, you can run
+
+    ipcluster start --profile=pbs1hr --n 10
+    
+which will start a controller on the local machine and then submit a PBS job to the
+default queue asking for ten nodes for an hour each. Each of those jobs will execute
+the `ipengine` command to connect to the controller, and then you're in business.
+
+Then you can run `AssignIPP.py` on your local node, and it will connect to the
+processes in the PBS queue and they will do the work.
+
+SSH Workers
+-----------
+
+I'm still exploring this, but I've got the following to work
+
+    rmcgibbo@vspm42-ubuntu ~
+    $ ipcontroller --ip='*'
+
+    rmcgibbo@vsp-compute-01 ~
+    $ scp vspm42-ubuntu:/home/rmcgibbo/.config/ipython/profile_default/security/ipcontroller-engine.json .
+    rmcgibbo@vsp-compute-01 ~
+    $ ipengine --file=ipcontroller-engine.json
+    
+Resources
+---------
+
+http://ipython.org/ipython-doc/dev/parallel/parallel_process.html
 
 
 
