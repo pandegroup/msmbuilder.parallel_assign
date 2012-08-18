@@ -40,6 +40,9 @@ Here's how I'm calling everything together in a PBS script
     ipcontroller --ip='*' --cluster-id $PBS_JOBID &> $LOG_FILE.ipcontroller &
     sleep 2
 
+    # because each of the engines doing assignment is using OpenMP multithreading, we only
+    # want one engine executing per box. MPI by default will try to put as many engines
+    # per box as there are cores, so we tell it explicitly --npernode 1
     mpirun --npernode 1 -np $PBS_NUM_NODES --machinefile $PBS_NODEFILE ipengine --cluster-id $PBS_JOBID &> $LOG_FILE.mpirun &
     sleep 5 # leave enough time for the engines to connect to the controller
 
