@@ -12,6 +12,41 @@ code, this code is a lot more flexible. It also should be a lot more stable/bug
 free. It checkpoints much faster by only writing the necessary incremental
 updates to the files on disk as opposed to completely rewriting them each time.
 
+Simple PBS Script
+-----------------
+Here's how I'm calling everything together in a PBS script
+
+    #PBS -N assign
+    #PBS -l walltime=1:00:00
+    #PBS -l nodes=2:ppn=24
+    #PBS -q default
+    #PBS -o /dev/null
+    #PBS -e /dev/null
+
+    PROJECT=$HOME/WW/ProjectInfo.h5
+    GENS=$HOME/WW/rmsd/hybrid5k/Gens.lh5
+    OUT_DIR=$HOME/test
+    CHUNK_SIZE=1000
+    METRIC="rmsd -a $HOME/WW/AtomIndices.dat"
+    LOG_FILE=$OUT_DIR/assign.log
+
+    #make sure the outdir exists
+    mkdir -p $OUT_DIR
+
+    #set 11 threads so that one is available for AssignIPP and ipcontroller
+    export OMP_NUM_THREADS=11
+
+    cd $PBS_O_WORKDIR
+    ipcontroller --ip='*' --cluster-id $PBS_JOBID &> $LOG_FILE.ipcontroller &
+    sleep 2
+
+    mpirun --npernode 1 -np $PBS_NUM_NODES --machinefile $PBS_NODEFILE ipengine --cluster-id $PBS_JOBID &> $LOG_FILE.mpirun &
+    sleep 5 # leave enough time for the engines to connect to the controller
+
+    AssignIPP.py -p $PROJECT -g $GENS -o $OUT_DIR -c $CHUNK_SIZE $METRIC &> $LOG_FILE
+
+
+
 
 Workflow
 --------
