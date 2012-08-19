@@ -1,6 +1,7 @@
 from hashlib import sha1
 import numpy
 import tables
+from msmbuilder import Trajectory
 from msmbuilder.Trajectory import _ConvertFromLossyIntegers
 
 class Chunk(object):

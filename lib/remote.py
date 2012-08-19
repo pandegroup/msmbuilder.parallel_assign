@@ -6,7 +6,7 @@ due to the way that IPython.parallel works, we do imports inside the functions
 
 
 """
-PGENS, CONF, METRIC = None, None, None
+PREPARED, PGENS, CONF, METRIC = False, None, None, None
 
 def load_gens(gens_fn, conf_fn, metric):
     """Setup a worker by adding pgens to its global namespace
@@ -18,15 +18,16 @@ def load_gens(gens_fn, conf_fn, metric):
     """
     from msmbuilder import Trajectory
     
-    global PGENS, CONF, METRIC
+    global PGENS, CONF, METRIC, PREPARED
     
     METRIC = metric
     CONF = Trajectory.LoadTrajectoryFile(conf_fn)
     gens = Trajectory.LoadTrajectoryFile(gens_fn)
     PGENS = metric.prepare_trajectory(gens)
+    PREPARED = True
     
 
-def assign(vtraj):
+def assign(vtraj, gens_fn, metric):
     """
     Assign a VTraj to the generators
     
@@ -46,8 +47,11 @@ def assign(vtraj):
     
     """
     import numpy as np
-    
     global CONF
+    
+    if not PREPARED:
+        load_gens(gens_fn, vtraj.project['ConfFilename'], metric)
+
     traj = vtraj.load(CONF)
     
     ptraj = METRIC.prepare_trajectory(traj)

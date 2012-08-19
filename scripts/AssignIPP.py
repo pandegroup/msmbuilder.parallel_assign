@@ -12,6 +12,7 @@ from msmbuilder.scripts.Cluster import add_argument, construct_metric
 from msmbuilder import metrics
 from msmbuilder import Project
 from msmbuilder import Trajectory
+from msmbuilder.utils import uneven_zip
 
 from msmbuilder.metrics import RMSD
 from passign import VTraj
@@ -69,12 +70,12 @@ def main():
     logger.info('%d/%d jobs remaining', len(remaining_vtrajs), len(all_vtrajs))
     
     # send the workers the files they need to get started
-    dview.apply_sync(remote.load_gens, generators, project['ConfFilename'],
-        metric)
+    # dview.apply_sync(remote.load_gens, generators, project['ConfFilename'],
+    #    metric)
     
     # get the workers going
-    # we set the chunk size manually
-    amr = lview.map(remote.assign, remaining_vtrajs, chunksize=1)
+    n_jobs = len(remaining_vtrajs)
+    amr = lview.map(remote.assign, remaining_vtrajs, [generators]*n_jobs, [metric]*n_jobs, chunksize=1)
     
     pending = set(amr.msg_ids)
     
@@ -91,10 +92,14 @@ def main():
             assignments, distances, chunk = ar.result[0]
             vtraj_id = local.save(f_assignments, f_distances, assignments, distances, chunk)
             
-            logger.info('engine: %s; chunk %s; %ss; status: %s; %s/%s remaining',
+            time_remaining = len(pending) * (ar.completed - amr.submitted[0]) / (n_jobs - len(pending))
+            eta = (ar.completed + time_remaining).strftime('%I:%M %p')
+            
+            logger.info('engine: %s; chunk %s; %ss; status: %s; %s/%s remaining; eta %s',
                 ar.metadata.engine_id, vtraj_id,
                 (ar.completed - ar.started).total_seconds(),
-                ar.status, len(pending), len(remaining_vtrajs))
+                ar.status, len(pending), n_jobs, eta)
+                
             
     f_assignments.close()
     f_distances.close()
