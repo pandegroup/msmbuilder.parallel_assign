@@ -53,7 +53,6 @@ def main():
         print >> sys.stderr, msg
         sys.exit(1)
         
-    dview = c[:]
     lview = c.load_balanced_view()
     
     # partition the frames into a bunch of vtrajs
