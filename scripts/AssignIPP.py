@@ -44,10 +44,7 @@ def main():
     
     # connect to the workers
     try:
-        if args.profile == '':
-            c = parallel.Client(timeout=2)
-        else:
-            c = parallel.Client(profile=args.profile, timeout=2)
+        c = parallel.Client(client_json_file(args.profile, args.cluster_id), timeout=2)
     except parallel.error.TimeoutError as e:
         msg = '\nparallel.error.TimeoutError: ' + str(e) + '\n\n'
         msg += "Perhaps you didn't start a controller?\n"
@@ -139,7 +136,8 @@ directly in C, and can thus fully leverage all of the cores on a single node."""
     add_argument(parser, '-c', dest='chunk_size', help='''Number of frames to processes per worker.
         Each chunk requires some communication overhead, so you should use relativly large chunks''',
         default=1000, type=int)
-    add_argument(parser, '-P', dest='profile', help='IPython.parallel profile to use.', default='')
+    add_argument(parser, '-P', dest='profile', help='IPython.parallel profile to use.', default='default')
+    add_argument(parser, '-C', dest='cluster_id', help='IPython.parallel cluster_id to use', default='')
     
     metrics_parsers = parser.add_subparsers(dest='metric')
     rmsd = metrics_parsers.add_parser('rmsd',
@@ -213,5 +211,24 @@ directly in C, and can thus fully leverage all of the cores on a single node."""
     return parser
 
 
+def client_json_file(profile='default', cluster_id=None):
+    """
+    Get the path to the ipcontroller-client.json file. This really shouldn't be necessary, except that
+    IPython doesn't automatically insert the cluster_id in the way that it should. I submitted a pull
+    request to fix it, but here is a monkey patch in the mean time
+    """
+    from IPython.core.profiledir import ProfileDir, ProfileDirError
+    from IPython.utils.path import get_ipython_dir
+    
+    profile_dir = ProfileDir.find_profile_dir_by_name(get_ipython_dir(), profile)
+    if not cluster_id:
+        client_json = 'ipcontroller-client.json'
+    else:
+        client_json = 'ipcontroller-%s-client.json' % cluster_id
+    fn = os.path.join(profile_dir.security_dir, client_json)
+    if not os.path.exists(fn):
+        raise ValueError('controller information not found at: %s' % fn)
+    return fn
+    
 if __name__ == '__main__':
     main()
