@@ -7,12 +7,12 @@ before_install:
 
 # command to install dependencies
 install: 
-  - pip install nose --use-mirrors
-  - pip install numpy --use-mirrors
-  - pip install numexpr --use-mirrors
-  - pip install ipython --use-mirrors
-  - pip install cython --use-mirrors
-  - pip install tables --use-mmirrors
+  - pip install -q nose --use-mirrors
+  - pip install -q numpy --use-mirrors
+  - pip install -q numexpr --use-mirrors 
+  - pip install -q ipython --use-mirrors
+  - pip install -q cython --use-mirrors
+  - pip install -q tables --use-mirrors
   - python setup.py install
   
 # command to run tests
