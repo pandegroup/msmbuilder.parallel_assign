@@ -15,7 +15,7 @@ from msmbuilder import Trajectory
 from msmbuilder.utils import uneven_zip
 
 from msmbuilder.metrics import RMSD
-from passign import VTraj
+from passign.vtraj import VTraj
 from passign import remote, local
 
 def setup_logger():
