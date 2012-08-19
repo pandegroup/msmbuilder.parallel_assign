@@ -2,23 +2,21 @@ language: python
 python:
   - "2.7"
 before_install:
-  - sudo apt-get install -qq gfortran swig libumfpack5.4.0 liblapack-dev libatlas-base-dev 
-  - sudo apt-get install -qq libjpeg-dev
+  - sudo apt-get install -qq gfortran swig libumfpack5.4.0 liblapack-dev libatlas-base-dev libjpeg-dev
   - sudo apt-get install -qq libhdf5-serial-dev
 
 # command to install dependencies
 install: 
   - pip install -q nose --use-mirrors
-  - pip install  -q numpy --use-mirrors
+  - pip install -q numpy --use-mirrors
   - pip install -q numexpr --use-mirrors 
   - pip install -q ipython --use-mirrors
   - pip install -q cython --use-mirrors
   - pip install -q tables --use-mirrors
   - pip install -q scipy --use-mirrors
-  - wget stanford.edu/~rmcgibbo/msmbuilder2.5.1.tar.bz
-  - tar -xjf msmbuilder2.5.1.tar.bz
+  - tar -xzf tests/testmsmbuilder2.5.1.tgz
   - cd msmbuilder
-  - python setup.py install
+  - python setup.py -q install
   - cd ..
   - python setup.py install
   
