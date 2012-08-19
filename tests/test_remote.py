@@ -1,0 +1,45 @@
+import os, inspect
+import numpy as np
+import numpy.testing as npt
+import IPython as ip
+
+from msmbuilder import Trajectory, Project
+from msmbuilder.metrics import RMSD
+from passign import remote
+from passign.remote import assign
+from passign.local import partition
+from passign.vtraj import VTraj
+
+def this_file_dir():
+    #http://stackoverflow.com/questions/50499/in-python-how-do-i-get-the-path-and-name-of-the-file-that-is-currently-executin
+    return os.path.dirname(inspect.getfile(inspect.currentframe()))
+
+def test_assign_0():
+    metric = RMSD(omp_parallel=False)
+    pdb_fn = os.path.join(this_file_dir(), 'trj0.pdb')
+    trj_fn = os.path.join(this_file_dir(), 'trj0.lh5')
+    assert os.path.exists(pdb_fn), 'file for testing not found'
+    assert os.path.exists(trj_fn), 'file for testing not found'
+    
+
+    project = Project({'NumTrajs': 1, 'TrajLengths': [501], 'TrajFileBaseName': 'trj', 'TrajFileType': '.lh5',
+             'ConfFilename': pdb_fn,
+             'TrajFilePath': this_file_dir()})
+    vtraj = partition(project, chunk_size=501)[0]
+    
+    # assigning some confs to themselves
+    a,d,vtraj = assign(vtraj, trj_fn, metric)
+    npt.assert_array_equal(a, np.arange(501))
+    npt.assert_array_almost_equal(d, np.zeros(501), decimal=3)
+    assert vtraj == vtraj
+    
+    # reset the global
+    remote.PREPARED=False
+    
+    # get a smaller vtraj, and just assign it to only the pDB
+    vtraj = partition(project, chunk_size=10)[1]
+    a,d,vtraj = assign(vtraj, pdb_fn, metric)
+    correct_d = np. array([ 0.07839765,  0.07229914,  0.1135717 ,  0.14044274,  0.1121752 , 0.10593121,  0.08611701,  0.08802523,  0.08841465,  0.08553738], dtype=np.float32)
+
+    npt.assert_array_almost_equal(d, correct_d)
+    npt.assert_array_equal(a, np.zeros(10))
