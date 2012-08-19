@@ -1,4 +1,6 @@
-ipython
 nose
 numpy
+numexpr
+ipython
+cython
 tables
