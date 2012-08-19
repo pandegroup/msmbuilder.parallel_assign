@@ -13,7 +13,7 @@ install:
   - pip install -q ipython --use-mirrors
   - pip install -q cython --use-mirrors
   - pip install -q tables --use-mirrors
-  - pip install -q scipy --use-mirrors
+  - pip install scipy --use-mirrors
   - wget stanford.edu/~rmcgibbo/msmbuilder2.5.1.tar.bz
   - tar -xjf msmbuilder2.5.1.tar.bz
   - cd msmbuilder
