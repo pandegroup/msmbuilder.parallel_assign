@@ -2,14 +2,14 @@ language: python
 python:
   - "2.7"
 before_install:
-  - sudo apt-get install -qq liblapack-dev libatlas-base-dev 
+  - sudo apt-get install -qq gfortran swig libumfpack5.4.0 liblapack-dev libatlas-base-dev 
   - sudo apt-get install -qq libjpeg-dev
   - sudo apt-get install -qq libhdf5-serial-dev
 
 # command to install dependencies
 install: 
   - pip install -q nose --use-mirrors
-  - pip install  numpy --use-mirrors
+  - pip install  -q numpy --use-mirrors
   - pip install -q numexpr --use-mirrors 
   - pip install -q ipython --use-mirrors
   - pip install -q cython --use-mirrors
