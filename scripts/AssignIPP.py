@@ -91,19 +91,44 @@ def main():
             assignments, distances, chunk = ar.result[0]
             vtraj_id = local.save(f_assignments, f_distances, assignments, distances, chunk)
             
-            time_remaining = len(pending) * (ar.completed - amr.submitted[0]) / (n_jobs - len(pending))
-            eta = (ar.completed + time_remaining).strftime('%I:%M %p')
-            
-            logger.info('engine: %s; chunk %s; %ss; status: %s; %s/%s remaining; eta %s',
-                ar.metadata.engine_id, vtraj_id,
-                (ar.completed - ar.started).total_seconds(),
-                ar.status, len(pending), n_jobs, eta)
+            log_status(logger, len(pending), n_jobs, vtraj_id, ar)
                 
             
     f_assignments.close()
     f_distances.close()
     
     logger.info('All done, exiting.')
+
+def log_status(logger, n_pending, n_jobs, job_id, async_result):
+    """After a job has completed, log the status of the map to the console
+    
+    Parameters
+    ----------
+    logger : logging.Logger
+        logger to print to
+    n_pending : int
+        number of jobs still remaining
+    n_jobs : int
+        total number of jobs in map
+    job_id : int
+         the id of the job that just completed (between 0 and n_jobs)
+    async_esult : IPython.parallel.client.asyncresult.AsyncMapResult
+         the container with the job results. includes not only the output,
+         but also metadata describing execution time, etc.
+    """
+
+    if ip.release.version >= '0.13':
+        time_remaining = n_pending * (async_result.completed - async_result.submitted) / (n_jobs - n_pending)
+        exec_time  = (async_result.completed - async_result.started).total_seconds()
+        eta = (async_result.completed + time_remaining).strftime('%I:%M %p')
+
+    else:
+        exec_time, eta = '?', '? (ipython=%s)' % ip.release.version
+        
+            
+    logger.info('engine: %s; chunk %s; %ss; status: %s; %s/%s remaining; eta %s',
+                async_result.metadata.engine_id, job_id, exec_time,
+                async_result.status, n_pending, n_jobs, eta)
 
 
 def setup_parser():
