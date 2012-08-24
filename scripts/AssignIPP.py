@@ -5,23 +5,19 @@ import logging
 import IPython as ip
 from IPython import parallel
 
-#from msmbuilder import arglib
 import argparse
 from msmbuilder.scripts.Cluster import add_argument, construct_metric
 from msmbuilder import metrics
 from msmbuilder import Project
-from msmbuilder import Trajectory
-from msmbuilder.utils import uneven_zip
 
-from msmbuilder.metrics import RMSD
-from passign.vtraj import VTraj
 from passign import remote, local
 
 def setup_logger(console_stream=sys.stdout):
     """
     Setup the logger
     """
-    formatter = logging.Formatter('%(name)s: %(asctime)s: %(message)s', '%I:%M:%S %p')
+    formatter = logging.Formatter('%(name)s: %(asctime)s: %(message)s',
+                                  '%I:%M:%S %p')
     console_handler = logging.StreamHandler(console_stream)
     console_handler.setFormatter(formatter)
     logger = logging.getLogger(os.path.split(sys.argv[0])[1])
@@ -41,15 +37,16 @@ def main(args, logger):
     
     # connect to the workers
     try:
-        c = parallel.Client(client_json_file(args.profile, args.cluster_id), timeout=2)
-    except parallel.error.TimeoutError as e:
-        msg = '\nparallel.error.TimeoutError: ' + str(e) + '\n\n'
-        msg += "Perhaps you didn't start a controller?\n"
+        json_file = client_json_file(args.profile, args.cluster_id)
+        client = parallel.Client(json_file, timeout=2)
+    except parallel.error.TimeoutError as exception:
+        msg = '\nparallel.error.TimeoutError: ' + str(exception)
+        msg += "\n\nPerhaps you didn't start a controller?\n"
         msg += "(hint, use ipcluster start)"
         print >> sys.stderr, msg
         sys.exit(1)
         
-    lview = c.load_balanced_view()
+    lview = client.load_balanced_view()
     
     # partition the frames into a bunch of vtrajs
     all_vtrajs = local.partition(project, args.chunk_size)
@@ -70,24 +67,25 @@ def main(args, logger):
     
     # get the workers going
     n_jobs = len(remaining_vtrajs)
-    amr = lview.map(remote.assign, remaining_vtrajs, [generators]*n_jobs, [metric]*n_jobs, chunksize=1)
+    amr = lview.map(remote.assign, remaining_vtrajs,
+                    [generators]*n_jobs, [metric]*n_jobs, chunksize=1)
     
     pending = set(amr.msg_ids)
     
     while pending:
-        c.wait(pending, 1e-3)
+        client.wait(pending, 1e-3)
         # finished is the set of msg_ids that are complete
-        finished = pending.difference(c.outstanding)
+        finished = pending.difference(client.outstanding)
         # update pending to exclude those that just finished
         pending = pending.difference(finished)
         for msg_id in finished:
             # we know these are done, so don't worry about blocking
-            ar = c.get_result(msg_id)
+            async = client.get_result(msg_id)
             
-            assignments, distances, chunk = ar.result[0]
+            assignments, distances, chunk = async.result[0]
             vtraj_id = local.save(f_assignments, f_distances, assignments, distances, chunk)
             
-            log_status(logger, len(pending), n_jobs, vtraj_id, ar)
+            log_status(logger, len(pending), n_jobs, vtraj_id, async)
                 
             
     f_assignments.close()
@@ -114,7 +112,8 @@ def log_status(logger, n_pending, n_jobs, job_id, async_result):
     """
 
     if ip.release.version >= '0.13':
-        time_remaining = n_pending * (async_result.completed - async_result.submitted) / (n_jobs - n_pending)
+        t_since_submit = async_result.completed - async_result.submitted
+        time_remaining = n_pending * (t_since_submit) / (n_jobs - n_pending)
         td  = (async_result.completed - async_result.started)
         #this is equivalent to the td.total_seconds() method, which was
         #introduced in python 2.7
@@ -246,7 +245,7 @@ def client_json_file(profile='default', cluster_id=None):
     IPython doesn't automatically insert the cluster_id in the way that it should. I submitted a pull
     request to fix it, but here is a monkey patch in the mean time
     """
-    from IPython.core.profiledir import ProfileDir, ProfileDirError
+    from IPython.core.profiledir import ProfileDir
     from IPython.utils.path import get_ipython_dir
     
     profile_dir = ProfileDir.find_profile_dir_by_name(get_ipython_dir(), profile)
@@ -254,12 +253,10 @@ def client_json_file(profile='default', cluster_id=None):
         client_json = 'ipcontroller-client.json'
     else:
         client_json = 'ipcontroller-%s-client.json' % cluster_id
-    fn = os.path.join(profile_dir.security_dir, client_json)
-    if not os.path.exists(fn):
-        raise ValueError('controller information not found at: %s' % fn)
-    return fn
+    filename = os.path.join(profile_dir.security_dir, client_json)
+    if not os.path.exists(filename):
+        raise ValueError('controller information not found at: %s' % filename)
+    return filename
     
 if __name__ == '__main__':
-    args = setup_parser()
-    logger = setup_logger()
-    main(args, logger)
+    main(setup_parser(), setup_logger())
