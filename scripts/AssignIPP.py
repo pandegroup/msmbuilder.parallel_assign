@@ -123,7 +123,7 @@ def log_status(logger, n_pending, n_jobs, job_id, async_result):
         eta = (async_result.completed + time_remaining).strftime('%I:%M %p')
 
     else:
-        execution_time, eta = '?', '? (ipython=%s)' % ip.release.version
+        execution_time, eta = '?', '?'
         
             
     logger.info('engine: %s; chunk %s; %ss; status: %s; %s/%s remaining; eta %s',
