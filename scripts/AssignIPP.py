@@ -260,6 +260,6 @@ def client_json_file(profile='default', cluster_id=None):
     return fn
     
 if __name__ == '__main__':
-    args = parser()
+    args = setup_parser()
     logger = setup_logger()
     main(args, logger)
