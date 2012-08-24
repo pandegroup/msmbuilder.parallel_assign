@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-from future import __division__
+from __future__ import division
 import sys, os
 import numpy as np
 import logging
