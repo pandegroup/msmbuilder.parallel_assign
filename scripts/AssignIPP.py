@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-
+from future import __division__
 import sys, os
 import numpy as np
 import logging
@@ -116,15 +116,18 @@ def log_status(logger, n_pending, n_jobs, job_id, async_result):
 
     if ip.release.version >= '0.13':
         time_remaining = n_pending * (async_result.completed - async_result.submitted) / (n_jobs - n_pending)
-        exec_time  = (async_result.completed - async_result.started).total_seconds()
+        td  = (async_result.completed - async_result.started)
+        #this is equivalent to the td.total_seconds() method, which was
+        #introduced in python 2.7
+        execution_time = (td.microseconds + (td.seconds + td.days * 24 * 3600) * 10**6) / 10**6
         eta = (async_result.completed + time_remaining).strftime('%I:%M %p')
 
     else:
-        exec_time, eta = '?', '? (ipython=%s)' % ip.release.version
+        execution_time, eta = '?', '? (ipython=%s)' % ip.release.version
         
             
     logger.info('engine: %s; chunk %s; %ss; status: %s; %s/%s remaining; eta %s',
-                async_result.metadata.engine_id, job_id, exec_time,
+                async_result.metadata.engine_id, job_id, execution_time,
                 async_result.status, n_pending, n_jobs, eta)
 
 
