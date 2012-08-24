@@ -1,4 +1,4 @@
-import os, inspect
+import os
 import numpy as np
 import numpy.testing as npt
 import IPython as ip
@@ -9,19 +9,17 @@ from passign import remote
 from passign.remote import assign
 from passign.local import partition
 from passign.vtraj import VTraj
+from common import fixtures_dir
 
-def this_file_dir():
-    #http://stackoverflow.com/questions/50499/in-python-how-do-i-get-the-path-and-name-of-the-file-that-is-currently-executin
-    return os.path.dirname(inspect.getfile(inspect.currentframe()))
 
 class test_assign():
     def setup(self):
         self.metric = metrics.Dihedral()
-        self.pdb_fn = os.path.join(this_file_dir(), 'trj0.pdb')
-        self.trj_fn = os.path.join(this_file_dir(), 'trj0.lh5')
+        self.pdb_fn = os.path.join(fixtures_dir(), 'native.pdb')
+        self.trj_fn = os.path.join(fixtures_dir(), 'trj0.lh5')
         self.project = Project({'NumTrajs': 1, 'TrajLengths': [501], 'TrajFileBaseName': 'trj', 'TrajFileType': '.lh5',
                            'ConfFilename': self.pdb_fn,
-                           'TrajFilePath': this_file_dir()})
+                           'TrajFilePath': fixtures_dir()})
         self.vtraj = partition(self.project, chunk_size=501)[0]
 
     def test_0(self):

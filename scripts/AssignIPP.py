@@ -18,12 +18,12 @@ from msmbuilder.metrics import RMSD
 from passign.vtraj import VTraj
 from passign import remote, local
 
-def setup_logger():
+def setup_logger(console_stream=sys.stdout):
     """
     Setup the logger
     """
     formatter = logging.Formatter('%(name)s: %(asctime)s: %(message)s', '%I:%M:%S %p')
-    console_handler = logging.StreamHandler()
+    console_handler = logging.StreamHandler(console_stream)
     console_handler.setFormatter(formatter)
     logger = logging.getLogger(os.path.split(sys.argv[0])[1])
     logger.root.handlers = [console_handler]
@@ -31,11 +31,8 @@ def setup_logger():
     return logger
 
 
-def main():
-    parser = setup_parser()
-    args = parser.parse_args()
+def main(args, logger):
     metric = construct_metric(args)
-    logger = setup_logger()
     
     project = Project.LoadFromHDF(args.project)
     if not os.path.exists(args.generators):
@@ -237,7 +234,8 @@ directly in C, and can thus fully leverage all of the cores on a single node."""
     add_argument(picklemetric, '-i', dest='picklemetric_input', required=True,
         help="Path to pickle file for the metric")
     
-    return parser
+    args = parser.parse_args()
+    return args
 
 
 def client_json_file(profile='default', cluster_id=None):
@@ -260,4 +258,6 @@ def client_json_file(profile='default', cluster_id=None):
     return fn
     
 if __name__ == '__main__':
-    main()
+    args = parser()
+    logger = setup_logger()
+    main(args, logger)
