@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-from __future__ import division
 import sys, os
 import numpy as np
 import logging
@@ -119,7 +118,7 @@ def log_status(logger, n_pending, n_jobs, job_id, async_result):
         td  = (async_result.completed - async_result.started)
         #this is equivalent to the td.total_seconds() method, which was
         #introduced in python 2.7
-        execution_time = (td.microseconds + (td.seconds + td.days * 24 * 3600) * 10**6) / 10**6
+        execution_time = (td.microseconds + (td.seconds + td.days * 24 * 3600) * 10**6) / float(10**6)
         eta = (async_result.completed + time_remaining).strftime('%I:%M %p')
 
     else:
