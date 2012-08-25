@@ -62,10 +62,10 @@ def assign(vtraj, gens_fn, metric):
     assignments = np.zeros(n_frames, dtype=int)
     
     for i in xrange(n_frames):
-        d = METRIC.one_to_all(ptraj, PGENS, i)
+        distances = METRIC.one_to_all(ptraj, PGENS, i)
         #d = np.zeros(len(ptraj))
-        assignments[i] = np.argmin(d)
-        distances[i] = d[assignments[i]]
+        assignments[i] = np.argmin(distances)
+        distances[i] = distances[assignments[i]]
         
         
     return assignments, distances, vtraj
