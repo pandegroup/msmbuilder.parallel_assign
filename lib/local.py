@@ -22,6 +22,7 @@ def partition(project, chunk_size):
         raise ValueError('must be >0')
     
     def generate():
+        "generator for the sections"
         last = VTraj(project)
         for i in xrange(0, len(traj_lengths)):
             end = 0
@@ -92,14 +93,14 @@ def setup_containers(outputdir, project, all_vtrajs):
     
     minus_ones = -1 * np.ones((n_trajs, max_n_frames))
     
-    def save_container(fn, dtype):
+    def save_container(filename, dtype):
         s = Serializer({'Data': np.array(minus_ones, dtype=dtype),
                         'completed_vtrajs': np.zeros((n_vtrajs), dtype=np.bool),
                         'hashes': hashes})
-        s.SaveToHDF(fn)
+        s.SaveToHDF(filename)
     
-    def check_container(fn):
-        ondisk = Serializer.LoadFromHDF(fn)
+    def check_container(filename):
+        ondisk = Serializer.LoadFromHDF(filename)
         if n_vtrajs != len(ondisk['hashes']):
             raise ValueError('You asked for {} vtrajs, but your checkpoint \
 file has {}'.format(n_vtrajs, len(ondisk['hashes'])))
