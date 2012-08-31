@@ -2,7 +2,7 @@ import os
 import numpy as np
 import tables
 
-from passign.vtraj import VTraj
+from msmbuilder.parallel_assign.vtraj import VTraj
 from msmbuilder import Serializer
 
 def partition(project, chunk_size):

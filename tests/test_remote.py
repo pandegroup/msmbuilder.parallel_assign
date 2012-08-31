@@ -5,10 +5,10 @@ import IPython as ip
 
 from msmbuilder import Trajectory, Project
 from msmbuilder import metrics
-from passign import remote
-from passign.remote import assign
-from passign.local import partition
-from passign.vtraj import VTraj
+from msmbuilder.parallel_assign import remote
+from msmbuilder.parallel_assign.remote import assign
+from msmbuilder.parallel_assign.local import partition
+from msmbuilder.parallel_assign.vtraj import VTraj
 from common import fixtures_dir
 
 

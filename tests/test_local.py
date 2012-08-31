@@ -1,6 +1,6 @@
 import numpy as np
 import numpy.testing as npt
-from passign.local import partition, setup_containers, save
+from msmbuilder.parallel_assign.local import partition, setup_containers, save
 from nose.tools import raises
 import tempfile
 import tables

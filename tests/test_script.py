@@ -8,7 +8,7 @@ import IPython as ip
 
 from msmbuilder import Serializer
 from common import fixtures_dir
-from passign.scripts import AssignIPP
+from msmbuilder.parallel_assign.scripts import AssignParallel
 
 def test_setup_logger():
     progname = 'TEST PROGNAME'
@@ -18,7 +18,7 @@ def test_setup_logger():
     fid, path = tempfile.mkstemp()
     stream = open(path, 'w')
 
-    logger = AssignIPP.setup_logger(console_stream=stream)
+    logger = AssignParallel.setup_logger(console_stream=stream)
     logger.info(message)
     
     stream.flush()
@@ -48,8 +48,8 @@ class test_main:
             args = self.Args()
             args.output_dir = tempfile.mkdtemp()
 
-            logger = AssignIPP.setup_logger()
-            AssignIPP.main(args, logger)
+            logger = AssignParallel.setup_logger()
+            AssignParallel.main(args, logger)
 
             assignments = Serializer.LoadData(os.path.join(args.output_dir, 'Assignments.h5'))
             r_assignments = Serializer.LoadData(os.path.join(fixtures_dir(), 'Assignments.h5'))
@@ -74,8 +74,8 @@ class test_main:
             args.output_dir = tempfile.mkdtemp()
             args.cluster_id = 'testclusterid'
 
-            logger = AssignIPP.setup_logger()
-            AssignIPP.main(args, logger)
+            logger = AssignParallel.setup_logger()
+            AssignParallel.main(args, logger)
 
             assignments = Serializer.LoadData(os.path.join(args.output_dir, 'Assignments.h5'))
             r_assignments = Serializer.LoadData(os.path.join(fixtures_dir(), 'Assignments.h5'))
