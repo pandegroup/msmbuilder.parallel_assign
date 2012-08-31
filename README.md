@@ -3,11 +3,9 @@
 
 Overview
 --------
-The AssignMPI.py script in MSMBuilder which I wrote a few months ago is
-embarrassingly bad. This module is my best attempt to provide a lasting,
-powerful, flexible, parallel solution to assigning big datasets.
+This package provides parallel assignment for MSMBuilder.
 
-Because it uses `IPython.parallel` as opposed to my own homegrown mpi4py
+Because it uses `IPython.parallel` as opposed to my homebuilt mpi4py
 code, this code is a lot more flexible. It also should be a lot more stable/bug
 free. It checkpoints much faster by only writing the necessary incremental
 updates to the files on disk as opposed to completely rewriting them each time.
@@ -15,7 +13,7 @@ updates to the files on disk as opposed to completely rewriting them each time.
 Simple PBS Script
 -----------------
 
-Here's how I'm calling everything together in a PBS script
+Here's an example of how to use this code in a PBS job
 
     #PBS -N assign
 	#PBS -l walltime=1:00:00
@@ -92,7 +90,7 @@ The Script
 `AssignIPP.py` options, that you can see with `AssignIPP.py -h`. A new option
 which deserves some explanation is the chunk_size option.
 
-Previous assignment codes that I wrote processed each trajectory individually.
+Previous assignment codes that were written processed each trajectory individually.
 This is not necessarily the best choice. If you have a lot of short trajectories,
 processing each trajectory individually leads to a lot of overhead that you
 don't need. On the other hand, if you only have a single long trajectory,
@@ -142,7 +140,7 @@ address, which is necessary.
 
 The `ipcluster` command, which calls both `ipcontroller` and `ipengine`, has a
 very convenient feature -- profiles, which helps to automate all of this setup.
-I've put a few profiles online at https://github.com/rmcgibbo/ipython_parallel_profiles
+Robert put a few profiles online at https://github.com/rmcgibbo/ipython_parallel_profiles
 
 If you download and install that package, you can run
 
@@ -158,7 +156,7 @@ processes in the PBS queue and they will do the work.
 SSH Workers
 -----------
 
-I'm still exploring this, but I've got the following to work
+We're still exploring this, but I've got the following to work
 
     rmcgibbo@vspm42-ubuntu ~
     $ ipcontroller --ip='*'
